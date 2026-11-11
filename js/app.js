@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggleBtn: document.getElementById('themeToggleBtn'),
     statusLine: document.getElementById('statusLine'),
     previewContainer: document.getElementById('previewContainer'),
+    ruler: document.getElementById('ruler'),
   };
 
   let recomputeTimer = null;
@@ -256,6 +257,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const naturalPx = pageWmm * mmToPx;
     const scale = Math.min(1, available / naturalPx);
     el.previewContainer.style.setProperty('--scale', String(scale));
+    el.previewContainer.style.setProperty('--pw', `${pageWmm}mm`);
+    renderRuler(pageWmm);
+  }
+  // Números da régua: 0 na borda esquerda da folha (centralizada), via CSS calc.
+  function renderRuler(pageWmm) {
+    el.ruler.innerHTML = '';
+    for (let mm = 0; mm <= pageWmm; mm += 20) {
+      const n = document.createElement('span');
+      n.className = 'ruler__num';
+      n.textContent = mm === 0 ? '0 mm' : String(mm);
+      n.style.left = `calc(50% + ${mm - pageWmm / 2}mm * var(--scale))`;
+      el.ruler.appendChild(n);
+    }
   }
   // --- Imprimir ---
   el.printBtn.addEventListener('click', () => window.print());

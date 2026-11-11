@@ -29,6 +29,7 @@ There is no build step, no package manager, and no test suite — this is intent
 - `js/fileHandling.js` — File → item conversion and validation only (extension allow-list, dedupe by `name|size|lastModified`); no DOM, no layout.
 - `js/app.js` — the only stateful module: owns `state`, wires up all DOM events (file add/remove/reorder, drag-and-drop, settings inputs, theme toggle, print), debounces layout recomputation, and renders the sidebar item list and toast notifications. Also owns the live on-screen `--scale` CSS variable that shrinks the true-size mm pages to fit the visible preview column (recalculated on resize).
 - `js/icons.js` — a handful of inline SVG icon strings (adapted from Feather Icons, MIT), returned as HTML strings via `Icons.svg(name)`. No icon font, no external requests.
+- `vendor/fonts/` — the vendored UI font (see Theming).
 - `vendor/pdf.js`, `vendor/pdf.worker.js` — pdf.js `3.11.174` **legacy** UMD build, vendored (not npm-installed) so the app has zero external network dependency at runtime. If ever updated, both files must come from the same version and both must stay as the "legacy" build (targets older/plain `<script>` loading, not the ES-module build).
 
 ## Printing model
@@ -37,4 +38,8 @@ There is no PDF-export/download feature by design — "Imprimir" calls `window.p
 
 ## Theming
 
-Dark/light theme is a manual toggle (`data-theme` attribute + `localStorage`), not just a `prefers-color-scheme` follow. The **sidebar is intentionally dark in both themes** (fixed brand identity, not theme-dependent) and the **A4 page previews are always white** (they represent physical paper) — only the surrounding app chrome (toolbar, background, cards) switches with the theme. Keep this distinction when touching CSS variables in `css/style.css`.
+Dark/light theme is a manual toggle (`data-theme` attribute + `localStorage`), not just a `prefers-color-scheme` follow. The palette is fixed to five colors (Porcelain `#f7f7f2`, Beige `#e4e6c3`, Palm Leaf `#899878`, Carbon Black `#222725`, Onyx `#121113`), listed at the top of `css/style.css`; derive any new tint from them rather than introducing new hues. The **sidebar is intentionally Carbon Black in both themes** and the **A4 page previews are always white** (they represent physical paper) — only the surrounding app chrome (toolbar, ruler, cutting-mat background) switches with the theme. The Palm Leaf accent (`--accent`, primary buttons) is also theme-independent. Keep this distinction when touching CSS variables in `css/style.css`.
+
+The preview is styled as a **cutting mat**: a 10 mm / 50 mm grid and a top mm ruler, both drawn in real preview scale (`--scale`) and aligned to the left edge of the centered sheet purely in CSS (`calc(50% + tile/2 - sheet/2)`, with `--pw` = sheet width set by `updateScale()` in `app.js`). Don't switch this back to a JS-measured pixel origin — it drifted when the scrollbar/viewport changed after the measurement. Crop marks are `::after` pseudo-elements on `.page-wrap`; the ruler, mat and crop marks are all hidden in `@media print`.
+
+The UI font is Atkinson Hyperlegible Next (SIL OFL), vendored as woff2 in `vendor/fonts/` (latin subset, weights 400/600) and loaded via `@font-face` with relative URLs, which works under `file://`. Don't replace it with a Google Fonts/CDN link — the app must have no runtime network dependency.
